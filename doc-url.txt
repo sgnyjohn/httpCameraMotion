@@ -1,0 +1,9 @@
+
+https://picamera.readthedocs.io/en/release-1.13/recipes1.html
+
+https://pillow.readthedocs.io/en/5.2.x/reference/Image.html
+
+https://www.packtpub.com/application-development/object-detection-and-recognition-using-deep-learning-opencv-video
+
+https://stackoverflow.com/questions/11541154/checking-images-for-similarity-with-opencv
+
