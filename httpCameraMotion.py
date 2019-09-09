@@ -336,7 +336,8 @@ class Handler(http.server.SimpleHTTPRequestHandler):
 				)
 		]
 		self.h('text/html')
-		self.on('<html><head><title>xxx -r0 dir- xxx</title></head>'
+		self.on('<html><head><title>r0 dir</title></head>'
+			+'<LINK REL="shortcut icon" href="/httpCameraMotion-icone.ico"/><LINK REL="icon" href="/httpCameraMotion-icone.ico"/>'
 			+'<script src="../img.js"></script><body><pre>'
 		)
 		for i in x:
@@ -746,7 +747,7 @@ try:
 	httpd = socketserver.TCPServer(('', port), Handler)
 	# gerar chave 
 	# openssl req -new -x509 -days 4000 -nodes -out chave.crt -keyout chave.key
-	httpd.socket = ssl.wrap_socket (httpd.socket, certfile='chave.crt', keyfile='chave.key', server_side=True)
+	httpd.socket = ssl.wrap_socket (httpd.socket, certfile='../chave.crt', keyfile='../chave.key', server_side=True)
 	#httpd.serve_forever()
 	t = threading.Thread(target=startHttp, args=())
 	t.daemon = True

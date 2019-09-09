@@ -3,8 +3,8 @@
 # systemctl daemon-reload
 # systemctl enable camera
 
-lg=/var/log/camera-service.log
-run=/var/run/camera-service.run
+lg=/var/log/httpCameraMotion.log
+run=/var/run/httpCameraMotion.run
 #########################################
 log() {
 	dt=$(date "+%Y-%m-%d %H:%M %a")
@@ -20,7 +20,7 @@ monit() {
 	while [ 1 -eq 1 ]; do 
 		p=
 		if [ $[n%9] -eq 0 ]; then
-			p=$(ps aux|grep python|grep camera-srv|grep -v serv)
+			p=$(ps aux|grep python|grep httpCameraMotion|grep -v serv)
 		fi
 		log "rodando $n $p"
 		sleep 20s
@@ -29,9 +29,13 @@ monit() {
 }
 
 if [ "$1" == "start" ]; then
+	#tem perms https://www.raspberrypi.org/forums/viewtopic.php?t=247867
+	aa=/dev/vcsm
+	chgrp alarm $aa
+	chmod g+rw $aa
+
 	#python
-	cd "$(dirname "$0")/www"
-	su - alarm -c "cd /home/alarm/cam;python camera-srv.py >>log.txt" &
+	su - alarm -c "cd /srv/httpCameraMotion/www;rm -f ../srv.log;python ../httpCameraMotion.py >>../srv.log" &
 	echo "$!" >$run
 	
 	#monitor

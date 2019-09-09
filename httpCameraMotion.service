@@ -5,8 +5,8 @@ After=syslog.target network.target
 [Service]
 Type=oneshot
 PrivateTmp=true
-ExecStart=/usr/bin/bash /srv/httpCameraMotion/httpCameraMotion.sh start
-ExecStop=/usr/bin/bash /srv/httpCameraMotion/httpCameraMotion.sh stop
+ExecStart=/usr/bin/bash /srv/httpCameraMotion/httpCameraMotion-service.sh start
+ExecStop=/usr/bin/bash /srv/httpCameraMotion/httpCameraMotion-service.sh stop
 #ExecReload=/bin/kill -HUP $MAINPID
 #KillSignal=SIGINT
 RemainAfterExit=yes
