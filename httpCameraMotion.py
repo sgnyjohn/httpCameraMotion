@@ -7,6 +7,24 @@
 # - área atingida na vertical ou na horizontal
 # - área atingida se moveu
 
+# add file /etc/pip.conf em nov/2018 (2 lines)
+# [global]
+# extra-index-url=https://www.piwheels.org/simple
+# +
+# install packages:
+# - libjpeg6-turbo
+# - libwebp + ( ln -s /usr/lib/libwebp.so.7 /usr/lib/libwebp.so.6 )
+# - jasper + ( ln -s /usr/lib/libjasper.so.4 /usr/lib/libjasper.so.1 )
+# - ( ln -s /usr/lib/libImath-2_4.so.24 /usr/lib/libImath-2_2.so.23 )
+# - ( ln -s libIlmImf-2_4.so.24 libIlmImf-2_2.so.23 )
+# - ( ln -s libIex-2_4.so.24 libIex-2_2.so.23 )
+# - ( ln -s libHalf.so libHalf.so.23 )
+# - ( ln -s libIlmThread-2_4.so.24 libIlmThread-2_2.so.23 )
+# - ( ln -s libQt5Gui.so.5 libQtGui.so.4 )
+# - ( ln -s libQt5Core.so.5 libQtCore.so.4 )
+
+
+
 import sys
 import traceback
 import signal
@@ -24,7 +42,7 @@ import os.path
 from imageio import imwrite,imread
 
 # camera
-import cv2
+#import cv2
 from picamera import PiCamera
 from picamera.array import PiRGBArray
 
@@ -40,6 +58,8 @@ import glob
 #from scipy.misc import imread,imsave
 from scipy.linalg import norm
 from scipy import sum, average
+
+
 def analizaMovSP(img1,img2):
 	global e_cron
 	# https://gist.github.com/astanin/626356
@@ -164,7 +184,7 @@ def getImage():
 	#time.sleep(0.1)
 	# grab an image from the camera
 	try:
-		print('r='+obj(c_raw)) # camera,size=None,array=(array:[],dtype:uint8)
+		#print('r='+obj(c_raw)) # camera,size=None,array=(array:[],dtype:uint8)
 		c_raw = PiRGBArray(camera)
 		camera.capture(c_raw, format="bgr")
 	except:
@@ -178,7 +198,7 @@ def getImage():
 	expos(img)
 	
 	# põe legenda
-	legImage(img)
+	# sem cv2 ... legImage(img)
 
 	return img
 	
@@ -270,23 +290,24 @@ def monitor():
 			nv += 1
 			md = sum(nvv)/len(nvv)
 			#grava dados da img capturada em LOG
-			lg.print('{:.2f}'.format(df)
-				+"	"+str(int(md*100)/100.0)
-				+"	"+str(int((time.time()-t)*1000))
-				+"	"+'{:.2f}'.format(mCor)
-				+"	"+e_imgPorSeg
-				+"	"+e_cron.perc()
-				+str(rw)
-				#+"	"+str(len(mediaCor1))
-				#+"	"+str(len(mediaCor2))
-				#+"	2	"+str((mediaCor2))
-				#+"	ea	"+str(exposAtual)
-				#+"	es	"+str(camera.exposure_speed)
-				#+"	em	"+camera.exposure_mode
-				#+"	fr	"+str(camera.framerate)
-				#+"	iso	"+str(camera.iso)
-				#+"	flash	"+camera.flash_mode
-			) #n_0*1.0/img1.size/cor
+			if False:
+				lg.print('{:.2f}'.format(df)
+					+"	"+str(int(md*100)/100.0)
+					+"	"+str(int((time.time()-t)*1000))
+					+"	"+'{:.2f}'.format(mCor)
+					+"	"+e_imgPorSeg
+					+"	"+e_cron.perc()
+					+str(rw)
+					#+"	"+str(len(mediaCor1))
+					#+"	"+str(len(mediaCor2))
+					#+"	2	"+str((mediaCor2))
+					#+"	ea	"+str(exposAtual)
+					#+"	es	"+str(camera.exposure_speed)
+					#+"	em	"+camera.exposure_mode
+					#+"	fr	"+str(camera.framerate)
+					#+"	iso	"+str(camera.iso)
+					#+"	flash	"+camera.flash_mode
+				) #n_0*1.0/img1.size/cor
 			if df>md*1.6:
 				nd += 1
 				dr = time.strftime("%Y-%m-%d", time.localtime())
@@ -323,6 +344,28 @@ class Handler(http.server.SimpleHTTPRequestHandler):
 	#		format%args)
 	#	)
 
+	def sendImageBgr(self,img):
+		if True:
+			# grava jpg para converter
+			aq='/tmp/im-aaa-tmp.jpg';
+			imwrite(aq,img)
+			#envia jpg
+			self.h('image/jpeg')
+			f  = open(aq, "rb") 
+			bf = '?'
+			while len(bf)!=0:
+				bf = f.read()
+				self.wfile.write(bf)
+			#fim
+			f.close()
+		else:
+			image = img
+			if True:
+				jpg = cv2.imencode('.jpg', image)[1]
+			else:
+				jpg,found = self.analizaFoto(image,modelo)
+			self.wfile.write(jpg)			
+		
 	def Dir(self,dr):
 		x = [
 				(x[0], x[1])
@@ -350,7 +393,7 @@ class Handler(http.server.SimpleHTTPRequestHandler):
 			)
 		self.on('</pre></body><html>')
 
-	def analizaFoto(self,foto,modelo):
+	def analizaFotoLIXO(self,foto,modelo):
 		found = False
 		#normalize
 		#image = cv2.imread("lenacolor512.tiff", cv2.IMREAD_COLOR)  # uint8 image
@@ -389,22 +432,15 @@ class Handler(http.server.SimpleHTTPRequestHandler):
 		t = time.time()
 		#https://www.pyimagesearch.com/2015/03/30/accessing-the-raspberry-pi-camera-with-opencv-and-python/
 		if monitRunning:
-			self.h('image/jpeg')
-			image = imgA
-			if True:
-				jpg = cv2.imencode('.jpg', image)[1]
-			else:
-				jpg,found = self.analizaFoto(image,modelo)
-			self.wfile.write(jpg)			
-		elif monitRunning:
+			self.sendImageBgr(imgA)
+		elif False and monitRunning:
 			self.h('multipart/x-mixed-replace; boundary=frame')
 			image = imgA
 			#envia jpg sempre q a imagem se altera
 			while True:
-				jpg = cv2.imencode('.jpg', image)[1]
 				self.wfile.write(b'--frame\r\n')
 				self.wfile.write(b'Content-Type: image/jpeg\r\n\r\n')
-				self.wfile.write(jpg)
+				self.sendImageBgr(image)
 				self.wfile.write(b'\r\n\r\n')
 				tf = time.time()
 				# espera até 7 segundos caso a imagem não se alterou repete.
@@ -418,11 +454,7 @@ class Handler(http.server.SimpleHTTPRequestHandler):
 		else:
 			self.h('image/jpeg')
 			image = getImage()
-			if True:
-				jpg = cv2.imencode('.jpg', image)[1]
-			else:
-				jpg,found = self.analizaFoto(image,modelo)
-			self.wfile.write(jpg)
+			self.sendImageBgr(image)
 
 	def raiz(self):
 		self.cookieHeader = self.headers.get('Cookie')
